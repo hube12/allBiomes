@@ -10,10 +10,7 @@ import kaptainwutax.seedutils.mc.MCVersion;
 import kaptainwutax.seedutils.mc.pos.CPos;
 import kaptainwutax.seedutils.mc.seed.RegionSeed;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -48,13 +45,55 @@ public class AllBiomes {
                 }
             }
         });
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasMansion));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasDesertTemple));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasIgloo));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasJungleTemple));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasVillage));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasOceanMonument));
-        quad_output.removeIf(ws -> isInvalidArea(ws, AllBiomes::hasOutpost));
+        quads.forEach(System.out::println);
+    }
+
+    private static ArrayList<Long> searchSeed(long structureSeed, int quadRegionX, int quadRegionZ) {
+        ArrayList<Long> res = new ArrayList<>();
+        ChunkRand rand = new ChunkRand();
+        CPos hut1 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ, rand);
+        CPos hut2 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ, rand);
+        CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ - 1, rand);
+        CPos hut4 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ - 1, rand);
+
+        List<CPos> potentialMushroomRegions = getPotentialMushroomRegions(structureSeed);
+        if (potentialMushroomRegions.isEmpty()) return res;
+
+        for (long upperBits = 0; upperBits < 1L << 16; upperBits++) {
+            long worldSeed = (upperBits << 48) | structureSeed;
+            OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
+            if (!checkMushroom(potentialMushroomRegions, source)) continue;
+            if (!SWAMP_HUT.canSpawn(hut1.getX(), hut1.getZ(), source)) continue;
+            if (!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source)) continue;
+            if (!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source)) continue;
+            if (!SWAMP_HUT.canSpawn(hut4.getX(), hut4.getZ(), source)) continue;
+            // check for the structures requirements
+            if (isInvalidArea(worldSeed, AllBiomes::hasMansion)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasDesertTemple)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasIgloo)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasJungleTemple)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasVillage)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasOceanMonument)) continue;
+            if (isInvalidArea(worldSeed, AllBiomes::hasOutpost)) continue;
+            if (isInvalidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.FROZEN_OCEAN, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.DARK_FOREST, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.BIRCH_FOREST, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.JUNGLE, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.BAMBOO_JUNGLE, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.TAIGA, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.SAVANNA, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.DESERT, 128, source)) continue;
+            if (isInvalidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
+            System.out.println(worldSeed);
+            res.add(worldSeed);
+        }
+        System.out.printf("Found %d world seeds for structure seed %d%n",res.size(),structureSeed);
+        return res;
     }
 
     private static boolean isInvalidArea(long worldSeed, BiFunction<Long, CPos, Boolean> filter) {
@@ -115,32 +154,7 @@ public class AllBiomes {
         return OCEAN_MONUMENT.canSpawn(mansion.getX(), mansion.getZ(), source);
     }
 
-    private static ArrayList<Long> searchSeed(long structureSeed, int quadRegionX, int quadRegionZ) {
-        ArrayList<Long> res = new ArrayList<>();
-        ChunkRand rand = new ChunkRand();
-        CPos hut1 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ, rand);
-        CPos hut2 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ, rand);
-        CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ - 1, rand);
-        CPos hut4 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ - 1, rand);
 
-        List<CPos> potentialMushroomRegions = getPotentialMushroomRegions(structureSeed);
-        if (potentialMushroomRegions.isEmpty()) return res;
-
-        for (long upperBits = 0; upperBits < 1L << 16; upperBits++) {
-            long worldSeed = (upperBits << 48) | structureSeed;
-            OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-            if (!checkMushroom(potentialMushroomRegions, source)) continue;
-            if (!SWAMP_HUT.canSpawn(hut1.getX(), hut1.getZ(), source)) continue;
-            if (!checkBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
-            if (!checkBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
-            if (!checkBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
-            if (!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source)) continue;
-            if (!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source)) continue;
-            if (!SWAMP_HUT.canSpawn(hut4.getX(), hut4.getZ(), source)) continue;
-            res.add(worldSeed);
-        }
-        return res;
-    }
 
     private static List<CPos> getPotentialMushroomRegions(long structureSeed) {
         List<CPos> regions = new ArrayList<>();
@@ -159,37 +173,29 @@ public class AllBiomes {
 
     private static boolean checkMushroom(List<CPos> regions, OverworldBiomeSource source) {
         long layerSeed = BiomeLayer.getLayerSeed(source.getWorldSeed(), 5L);
-
         for (CPos region : regions) {
             long localSeed = BiomeLayer.getLocalSeed(layerSeed, region.getX(), region.getZ()) >> 24;
-            if ((int) Math.floorMod(localSeed, 100) != 0) continue; //nextInt(100) == 0 in the region to get mushroom
+            if (Math.floorMod(localSeed, 100) != 0) continue; //nextInt(100) == 0 in the region to get mushroom
             if (source.base.sample(region.getX(), 0, region.getZ()) != Biome.MUSHROOM_FIELDS.getId()) continue;
             return true;
         }
-
         return false;
     }
 
-    private static boolean checkBiome(Predicate<Biome> biomePredicate, int increment, OverworldBiomeSource source) {
+    private static boolean isInvalidBiome(Predicate<Biome> biomePredicate, int increment, OverworldBiomeSource source) {
         for (int ox = -BIOME_DISTANCE; ox < BIOME_DISTANCE; ox += increment) {
             for (int oz = -BIOME_DISTANCE; oz < BIOME_DISTANCE; oz += increment) {
                 Biome biome = source.getBiomeForNoiseGen(ox >> 2, 0, oz >> 2);
-                if (biomePredicate.test(biome)) return true;
+                if (biomePredicate.test(biome)) return false;
             }
         }
-
-        return false;
+        return true;
     }
 
     private static LongStream getQuadRegionSeeds() {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(new File("allBiomes/all_quad_region_seeds.txt")));
-            return reader.lines().mapToLong(Long::parseLong);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return LongStream.empty();
+        InputStream in = AllBiomes.class.getResourceAsStream("all_quad_region_seeds.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        return reader.lines().mapToLong(Long::parseLong);
     }
 
 }
