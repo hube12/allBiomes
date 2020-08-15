@@ -44,7 +44,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClassName = 'allBiomes.App'
+    mainClassName = 'allBiomes.AllBiomes'
 }
 
 compileJava {

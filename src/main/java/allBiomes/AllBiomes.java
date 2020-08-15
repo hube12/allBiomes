@@ -34,6 +34,7 @@ public class AllBiomes {
     public static final int BIOME_DISTANCE_256 = BIOME_DISTANCE / 256;
 
     public static void main(String[] args) {
+        System.out.println("Starting the process, this might take a while...");
         List<Long> quads = getQuadRegionSeeds().boxed().collect(Collectors.toList());
         Collections.shuffle(quads);
         List<Long> quad_output = new ArrayList<>();
@@ -83,6 +84,8 @@ public class AllBiomes {
             if (!isValidArea(worldSeed, AllBiomes::hasOutpost)) continue;
             ////check the biomes requirements
             if (!isValidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
+            if (!isValidBiome(b -> b == Biome.BADLANDS, 128, source)) continue;
+            if (!isValidBiome(b -> b == Biome.LUKEWARM_OCEAN, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
@@ -90,7 +93,6 @@ public class AllBiomes {
             //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.DARK_FOREST, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.BIRCH_FOREST, 128, source)) continue;
-            //if (!isValidBiome(b -> b == Biome.JUNGLE, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.BAMBOO_JUNGLE, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.TAIGA, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.SAVANNA, 128, source)) continue;
@@ -176,12 +178,19 @@ public class AllBiomes {
 
         return regions;
     }
-
+    private static long floorMod(long x, long y) {
+        long mod = x % y;
+        // if the signs are different and modulo not zero, adjust result
+        if ((x ^ y) < 0 && mod != 0) {
+            mod += y;
+        }
+        return mod;
+    }
     private static boolean checkMushroom(List<CPos> regions, OverworldBiomeSource source) {
         long layerSeed = BiomeLayer.getLayerSeed(source.getWorldSeed(), 5L);
         for (CPos region : regions) {
             long localSeed = BiomeLayer.getLocalSeed(layerSeed, region.getX(), region.getZ()) >> 24;
-            if (Math.floorMod(localSeed, 100) != 0) continue; //nextInt(100) == 0 in the region to get mushroom
+            if (floorMod(localSeed, 100) != 0) continue; //nextInt(100) == 0 in the region to get mushroom
             if (source.base.sample(region.getX(), 0, region.getZ()) != Biome.MUSHROOM_FIELDS.getId()) continue;
             return true;
         }
