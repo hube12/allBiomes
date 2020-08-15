@@ -11,8 +11,7 @@ import kaptainwutax.seedutils.mc.pos.CPos;
 import kaptainwutax.seedutils.mc.seed.RegionSeed;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -31,11 +30,12 @@ public class AllBiomes {
 
     public static final int MAX_QUAD_DISTANCE = (2048 >> 4) / SWAMP_HUT.getSpacing();
 
-    public static final int BIOME_DISTANCE = 1536;
+    public static final int BIOME_DISTANCE = 4000;
     public static final int BIOME_DISTANCE_256 = BIOME_DISTANCE / 256;
 
     public static void main(String[] args) {
         List<Long> quads = getQuadRegionSeeds().boxed().collect(Collectors.toList());
+        Collections.shuffle(quads);
         List<Long> quad_output = new ArrayList<>();
         long time=System.nanoTime();
         long i=0;
@@ -47,7 +47,7 @@ public class AllBiomes {
                 }
             }
             i++;
-            if (i%1000==0){
+            if (i%100==0){
                 System.out.println("We are at "+i/(double)quads.size()*100+"% over the total and at time "+(System.nanoTime()-time)/1.0e9);
             }
         }
@@ -62,14 +62,6 @@ public class AllBiomes {
         CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ - 1, rand);
         CPos hut4 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ - 1, rand);
 
-        // check for the structures requirements
-        if (!isValidArea(structureSeed, AllBiomes::hasMansion)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasDesertTemple)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasIgloo)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasJungleTemple)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasVillage)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasOceanMonument)) return res;
-        if (!isValidArea(structureSeed, AllBiomes::hasOutpost)) return res;
         List<CPos> potentialMushroomRegions = getPotentialMushroomRegions(structureSeed);
         if (potentialMushroomRegions.isEmpty()) return res;
 
@@ -81,20 +73,28 @@ public class AllBiomes {
             if (!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source)) continue;
             if (!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source)) continue;
             if (!SWAMP_HUT.canSpawn(hut4.getX(), hut4.getZ(), source)) continue;
+            // check for the structures requirements
+            if (!isValidArea(worldSeed, AllBiomes::hasMansion)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasDesertTemple)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasIgloo)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasJungleTemple)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasVillage)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasOceanMonument)) continue;
+            if (!isValidArea(worldSeed, AllBiomes::hasOutpost)) continue;
             //check the biomes requirements
-            if (isInvalidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.FROZEN_OCEAN, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.DARK_FOREST, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.BIRCH_FOREST, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.JUNGLE, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.BAMBOO_JUNGLE, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.TAIGA, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.SAVANNA, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.DESERT, 128, source)) continue;
+            if (!isValidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
+            if (!isValidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
+            if (!isValidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.FROZEN_OCEAN, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.DARK_FOREST, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.BIRCH_FOREST, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.JUNGLE, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.BAMBOO_JUNGLE, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.TAIGA, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.SAVANNA, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.DESERT, 128, source)) continue;
             System.out.println(worldSeed);
             res.add(worldSeed);
         }
@@ -188,14 +188,14 @@ public class AllBiomes {
         return false;
     }
 
-    private static boolean isInvalidBiome(Predicate<Biome> biomePredicate, int increment, OverworldBiomeSource source) {
+    private static boolean isValidBiome(Predicate<Biome> biomePredicate, int increment, OverworldBiomeSource source) {
         for (int ox = -BIOME_DISTANCE; ox < BIOME_DISTANCE; ox += increment) {
             for (int oz = -BIOME_DISTANCE; oz < BIOME_DISTANCE; oz += increment) {
                 Biome biome = source.getBiomeForNoiseGen(ox >> 2, 0, oz >> 2);
-                if (biomePredicate.test(biome)) return false;
+                if (biomePredicate.test(biome)) return true;
             }
         }
-        return true;
+        return false;
     }
 
     private static LongStream getQuadRegionSeeds() {
