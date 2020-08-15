@@ -81,10 +81,10 @@ public class AllBiomes {
             if (!isValidArea(worldSeed, AllBiomes::hasVillage)) continue;
             if (!isValidArea(worldSeed, AllBiomes::hasOceanMonument)) continue;
             if (!isValidArea(worldSeed, AllBiomes::hasOutpost)) continue;
-            //check the biomes requirements
+            ////check the biomes requirements
             if (!isValidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
-            if (!isValidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
-            if (!isValidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
+            //if (!isValidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.FROZEN_OCEAN, 128, source)) continue;
             //if (!isValidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
