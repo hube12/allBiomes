@@ -63,13 +63,13 @@ public class AllBiomes {
         CPos hut4 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ - 1, rand);
 
         // check for the structures requirements
-        if (isInvalidArea(structureSeed, AllBiomes::hasMansion)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasDesertTemple)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasIgloo)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasJungleTemple)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasVillage)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasOceanMonument)) return res;
-        if (isInvalidArea(structureSeed, AllBiomes::hasOutpost)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasMansion)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasDesertTemple)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasIgloo)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasJungleTemple)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasVillage)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasOceanMonument)) return res;
+        if (!isValidArea(structureSeed, AllBiomes::hasOutpost)) return res;
         List<CPos> potentialMushroomRegions = getPotentialMushroomRegions(structureSeed);
         if (potentialMushroomRegions.isEmpty()) return res;
 
@@ -102,10 +102,10 @@ public class AllBiomes {
         return res;
     }
 
-    private static boolean isInvalidArea(long worldSeed, BiFunction<Long, CPos, Boolean> filter) {
+    private static boolean isValidArea(long worldSeed, BiFunction<Long, CPos, Boolean> filter) {
         for (int regionX = -MAX_QUAD_DISTANCE; regionX < MAX_QUAD_DISTANCE; regionX++) {
             for (int regionZ = -MAX_QUAD_DISTANCE; regionZ < MAX_QUAD_DISTANCE; regionZ++) {
-                if (!filter.apply(worldSeed, new CPos(regionX, regionZ))) return true;
+                if (filter.apply(worldSeed, new CPos(regionX, regionZ))) return true;
             }
         }
         return false;
@@ -113,51 +113,51 @@ public class AllBiomes {
 
     private static boolean hasMansion(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = MANSION.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = MANSION.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return MANSION.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && MANSION.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasIgloo(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = IGLOO.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = IGLOO.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return IGLOO.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && IGLOO.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasDesertTemple(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = DESERT_TEMPLE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = DESERT_TEMPLE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return DESERT_TEMPLE.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && DESERT_TEMPLE.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasVillage(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = VILLAGE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = VILLAGE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return VILLAGE.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && VILLAGE.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasJungleTemple(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = JUNGLE_TEMPLE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = JUNGLE_TEMPLE.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return JUNGLE_TEMPLE.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && JUNGLE_TEMPLE.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasOutpost(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = OUTPOST.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = OUTPOST.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return OUTPOST.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && OUTPOST.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
     private static boolean hasOceanMonument(long worldSeed, CPos reg) {
         ChunkRand rand = new ChunkRand();
-        CPos mansion = OCEAN_MONUMENT.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
+        CPos structure = OCEAN_MONUMENT.getInRegion(worldSeed & Mth.MASK_48, reg.getX(), reg.getZ(), rand);
         OverworldBiomeSource source = new OverworldBiomeSource(MCVersion.v1_16, worldSeed);
-        return OCEAN_MONUMENT.canSpawn(mansion.getX(), mansion.getZ(), source);
+        return structure!=null && OCEAN_MONUMENT.canSpawn(structure.getX(), structure.getZ(), source);
     }
 
 
