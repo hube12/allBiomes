@@ -37,15 +37,21 @@ public class AllBiomes {
     public static void main(String[] args) {
         List<Long> quads = getQuadRegionSeeds().boxed().collect(Collectors.toList());
         List<Long> quad_output = new ArrayList<>();
-        quads.forEach(regionSeed -> {
+        long time=System.nanoTime();
+        long i=0;
+        for (Long regionSeed : quads) {
             for (int regionX = -MAX_QUAD_DISTANCE; regionX < MAX_QUAD_DISTANCE; regionX++) {
                 for (int regionZ = -MAX_QUAD_DISTANCE; regionZ < MAX_QUAD_DISTANCE; regionZ++) {
                     long structureSeed = regionSeed - SWAMP_HUT.getSalt() - regionX * RegionSeed.A - regionZ * RegionSeed.B;
                     quad_output.addAll(searchSeed(structureSeed, regionX, regionZ));
                 }
             }
-        });
-        quads.forEach(System.out::println);
+            i++;
+            if (i%1000==0){
+                System.out.println("We are at "+i/(double)quads.size()*100+"% over the total and at time "+(System.nanoTime()-time)/1.0e9);
+            }
+        }
+        quad_output.forEach(System.out::println);
     }
 
     private static ArrayList<Long> searchSeed(long structureSeed, int quadRegionX, int quadRegionZ) {
@@ -56,6 +62,14 @@ public class AllBiomes {
         CPos hut3 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX, quadRegionZ - 1, rand);
         CPos hut4 = SWAMP_HUT.getInRegion(structureSeed, quadRegionX - 1, quadRegionZ - 1, rand);
 
+        // check for the structures requirements
+        if (isInvalidArea(structureSeed, AllBiomes::hasMansion)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasDesertTemple)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasIgloo)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasJungleTemple)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasVillage)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasOceanMonument)) return res;
+        if (isInvalidArea(structureSeed, AllBiomes::hasOutpost)) return res;
         List<CPos> potentialMushroomRegions = getPotentialMushroomRegions(structureSeed);
         if (potentialMushroomRegions.isEmpty()) return res;
 
@@ -67,14 +81,7 @@ public class AllBiomes {
             if (!SWAMP_HUT.canSpawn(hut2.getX(), hut2.getZ(), source)) continue;
             if (!SWAMP_HUT.canSpawn(hut3.getX(), hut3.getZ(), source)) continue;
             if (!SWAMP_HUT.canSpawn(hut4.getX(), hut4.getZ(), source)) continue;
-            // check for the structures requirements
-            if (isInvalidArea(worldSeed, AllBiomes::hasMansion)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasDesertTemple)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasIgloo)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasJungleTemple)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasVillage)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasOceanMonument)) continue;
-            if (isInvalidArea(worldSeed, AllBiomes::hasOutpost)) continue;
+            //check the biomes requirements
             if (isInvalidBiome(b -> b.getCategory() == Biome.Category.JUNGLE, 512, source)) continue;
             if (isInvalidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
             if (isInvalidBiome(b -> b == Biome.FLOWER_FOREST, 128, source)) continue;
@@ -88,7 +95,6 @@ public class AllBiomes {
             if (isInvalidBiome(b -> b == Biome.GIANT_TREE_TAIGA, 128, source)) continue;
             if (isInvalidBiome(b -> b == Biome.SAVANNA, 128, source)) continue;
             if (isInvalidBiome(b -> b == Biome.DESERT, 128, source)) continue;
-            if (isInvalidBiome(b -> b == Biome.ICE_SPIKES, 128, source)) continue;
             System.out.println(worldSeed);
             res.add(worldSeed);
         }
